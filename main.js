@@ -1,4 +1,3 @@
-
 const itSchool = {
   name: "Simple Online School",
   description: "Simple online school description",
@@ -7,7 +6,6 @@ const itSchool = {
   availableCourses: ["Front-end Basic", "Front-end Pro"],
   startedGroups: [],
   __callbacks: {},
-
   __supportedEventTypes: {
     GROUP_STARTED: "GROUP_STARTED",
     GROUP_ENDED: "GROUP_ENDED"
@@ -42,17 +40,16 @@ const itSchool = {
 
   endLearningGroup(courseName) {
     if (this.startedGroups.some((startedGroup) => startedGroup.courseName === courseName)) {
-      this.startedGroups = this.startedGroups.filter((startedGroup) => startedGroup.courseName !== courseName);
-      this.dispatch(this.__supportedEventTypes.GROUP_ENDED, courseName);
-      if (this.startedGroups.some((startedGroup) => startedGroup.passedLessons <= startedGroup.totalLessons))  {
+      const currentCourse = this.startedGroups.find((startedGroup) => startedGroup.courseName === courseName);
+      if (currentCourse.totalLessons > currentCourse.passedLessons) {
         console.log(`Вы не можете закончить курс ${courseName} раньше времени`);
       } else {
-        console.log('ok');
+        this.dispatch(this.__supportedEventTypes.GROUP_ENDED, courseName);
       }
+      this.startedGroups = this.startedGroups.filter((startedGroup) => startedGroup.courseName !== courseName);
     } else {
       console.log(`You are trying to finish not existing learning group!`);
     }
-
   },
 
   on(eventName, callback) {
@@ -64,35 +61,43 @@ const itSchool = {
   },
 
   addCourse(courseName) {
-    this.availableCourses.push(courseName)
+    this.availableCourses.push(courseName);
 
   },
-  
 
   removeCourse(courseName) {
-    let courseIndex = this.availableCourses.indexOf(courseName)
+    let courseIndex = this.availableCourses.indexOf(courseName);
     if (courseIndex !== -1) {
-      this.availableCourses.splice(courseIndex)
+      this.availableCourses.splice(courseIndex);
     }
   },
 
+  doneLesson(courseName) {
+    const currentCourse = this.startedGroups.find((startedGroup) => startedGroup.courseName === courseName);
+    if (currentCourse.passedLessons < currentCourse.totalLessons) {
+      const lessonOver = currentCourse.passedLessons++;
+    } else {
+      this.dispatch(this.__supportedEventTypes.GROUP_ENDED, courseName);
+    }
+  },
 }
 
 itSchool.on(
   itSchool.__supportedEventTypes.GROUP_STARTED,
-  (courseName) => console.log(`Started ${courseName} group! 🎉🎉🎉`),
+  (courseName) => console.log(`Стартовал курс ${courseName} 🎉🎉🎉`),
 );
 
 itSchool.on(
   itSchool.__supportedEventTypes.GROUP_ENDED,
-  (courseName) => console.log(`Group with ${courseName} course successfully finished! 🎓🎓🎓`),
+  (courseName) => console.log(`Курс ${courseName} успешно завершён 🎓🎓🎓`),
 );
 
-itSchool.startLearningGroup("Front-end Pro", 10, 32, 32);
-itSchool.startLearningGroup("Front-end Basic", 10, 33, 33);
-itSchool.startLearningGroup("Python Basic", 6);
+itSchool.startLearningGroup("Front-end Pro", 10, 32, 30);
+itSchool.startLearningGroup("Front-end Basic", 10, 33, 31);
+itSchool.doneLesson("Front-end Pro")
+itSchool.doneLesson("Front-end Basic")
 itSchool.endLearningGroup("Front-end Pro");
 itSchool.endLearningGroup("Front-end Basic");
 itSchool.endLearningGroup("Python Basic");
-itSchool.addCourse("Python")
-itSchool.removeCourse("Python")
+itSchool.addCourse("Python");
+itSchool.removeCourse("Python");
